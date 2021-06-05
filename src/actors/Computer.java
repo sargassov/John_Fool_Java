@@ -3,12 +3,14 @@ package actors;
 import cards.Card;
 import cards.Koloda;
 import mains.Game;
+import windows.BattleWindow;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Computer extends Actor implements MoveAndDefence {
+
 
     public Computer(Koloda koloda, ArrayList<Card> playShuffle, Game game, boolean END_MOVE){
         super(koloda, playShuffle, game, END_MOVE);
@@ -17,7 +19,8 @@ public class Computer extends Actor implements MoveAndDefence {
 
 
     @Override
-    public void move() {
+    public void move(Card card) {
+        System.out.println("Computer move");
         int minPower = 100;
         int currentCardToMove = -1;
         Set<String> possibleMoveCards = new LinkedHashSet<>();
@@ -46,35 +49,64 @@ public class Computer extends Actor implements MoveAndDefence {
         System.out.println("Компьютер ходит картой " + shuffle.get(currentCardToMove).getSuit() + " "+
                 shuffle.get(currentCardToMove).getNumber());
         shuffle.remove(currentCardToMove);
+
+        System.out.println("HERE");
     }
 
     @Override
-    public void defence() {
-        Card battleCard = playShuffle.get(playShuffle.size() - 1);
-        int defenceCard = -1;
+    public void defence(Card card) {
+
+        Card batteleCard = playShuffle.get(playShuffle.size() - 1);
+        int answerCard = -1;
 
         for(Card c : shuffle){
-            System.out.println(c.getSuit() +  " " + c.getNumber());
-            if((battleCard.getSuit().equals(c.getSuit()) || c.getSuit().equals(kozar))
-                    && c.getCardPower() > battleCard.getCardPower()){
-                int currentCard = shuffle.indexOf(c);
-                if(defenceCard == -1 || shuffle.get(currentCard).getCardPower() < shuffle.get(defenceCard).getCardPower()){
-                    defenceCard = currentCard;
+            if(c.getCardPower() > batteleCard.getCardPower()){
+                if(c.getSuit().equals(batteleCard.getSuit()) || c.getSuit().equals(kozar)){
+                    if(answerCard == -1 || shuffle.get(answerCard).getCardPower() > c.getCardPower()){
+                        answerCard = shuffle.indexOf(c);
+                    }
                 }
             }
         }
 
-        if(defenceCard == -1){
-            shuffle.addAll(playShuffle);
-            playShuffle.clear();
-            System.out.println("Компьютер взял карты себе!");
-            game.takeOffMethod();
+        if(answerCard != -1){
+            playShuffle.add(shuffle.get(answerCard));
+            shuffle.remove(answerCard);
         }
         else{
-            playShuffle.add(shuffle.get(defenceCard));
-            System.out.println("Компьютер отбился картой " + shuffle.get(defenceCard).getSuit() + " " + shuffle.get(defenceCard).getNumber());
-            shuffle.remove(defenceCard);
+            shuffle.addAll(playShuffle);
+            playShuffle.clear();
+            game.takeOffMethod();
         }
+
+
+
+//        System.out.println("defence Comp");
+//        Card battleCard = playShuffle.get(playShuffle.size() - 1);
+//        int defenceCard = -1;
+//
+//        for(Card c : shuffle){
+//            System.out.println(shuffle.indexOf(c) + ". " + c.getSuit() +  " " + c.getNumber());
+//            if((battleCard.getSuit().equals(c.getSuit()) || c.getSuit().equals(kozar))
+//                    && c.getCardPower() > battleCard.getCardPower()){
+//                int currentCard = shuffle.indexOf(c);
+//                if(defenceCard == -1 || shuffle.get(currentCard).getCardPower() < shuffle.get(defenceCard).getCardPower()){
+//                    defenceCard = currentCard;
+//                }
+//            }
+//        }
+//
+//        if(defenceCard == -1){
+//            shuffle.addAll(playShuffle);
+//            playShuffle.clear();
+//            System.out.println("Компьютер взял карты себе!");
+//            game.takeOffMethod();
+//        }
+//        else{
+//            playShuffle.add(shuffle.get(defenceCard));
+//            System.out.println("Компьютер отбился картой " + shuffle.get(defenceCard).getSuit() + " " + shuffle.get(defenceCard).getNumber());
+//            shuffle.remove(defenceCard);
+//        }
     }
 
     @Override
@@ -84,11 +116,13 @@ public class Computer extends Actor implements MoveAndDefence {
 
     @Override
     public void newCardTake(){
-        if(koloda.getCards().size() == 0) return;
         while(shuffle.size() < 6){
-            shuffle.add(koloda.getCards().get(0));
-            koloda.getCards().remove(0);
             if(koloda.getCards().size() == 0) return;
+            else{
+                shuffle.add(koloda.getCards().get(0));
+                koloda.getCards().remove(0);
+            }
+
         }
     }
 

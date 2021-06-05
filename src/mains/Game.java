@@ -6,6 +6,10 @@ import actors.MoveAndDefence;
 import actors.Player;
 import cards.Card;
 import cards.Koloda;
+import com.sun.corba.se.impl.protocol.FullServantCacheLocalCRDImpl;
+import windows.BattleWindow;
+import windows.FrontWindow;
+import windows.Window;
 
 import java.util.ArrayList;
 
@@ -22,22 +26,28 @@ public class Game {
     private static int defencePlayer = movePlayer + 1;
     private static int countMove = 1;
     private static int maxPlayShuffleSize = 12;
+    private static FrontWindow frontWindow;
+    private static BattleWindow battleWindow;
+    private Card taken;
+    private boolean access;
 
-    public Game(int valueOfPlayers){
+    public Game(int valueOfPlayers, FrontWindow frWindow){
+        frontWindow = frWindow;
         this.valueOfPlayers = valueOfPlayers;
         Koloda koloda = new Koloda();
         kolodaCards = koloda.getCards();
         KOZAR = kolodaCards.get(kolodaCards.size()-1).getSuit();
         Actor.kozar = KOZAR;
-        System.out.println("КОЗАРЬ - это " + KOZAR);
+        access = false;
 
+        System.out.println("КОЗАРЬ - это " + KOZAR);
         cardPowerReInstance();
 
         actors = new ArrayList<>();
         playShuffle = new ArrayList<>();
 
-        for (int i = 0; i <= valueOfPlayers; i++) {
-            if(i < valueOfPlayers){
+        for (int i = 0; i < valueOfPlayers; i++) {
+            if(i < valueOfPlayers - 1){
                 Player player = new Player(koloda, playShuffle, this, END_MOVE);
                 actors.add(player);
             }
@@ -46,52 +56,37 @@ public class Game {
                 actors.add(computer);
             }
         }
+        newSession();
     }
 
-    public void battle(){
-        while(true){
-            for(movePlayer = 0, defencePlayer = 1;;){
-                END_MOVE = false;
-                System.out.println("----------\n" + countMove + " ход. Осталось карт в колоде = " + kolodaCards.size());
-                if(defencePlayer == actors.size()) {defencePlayer = 0;}
-                if(movePlayer == actors.size()) break;
 
-                if(playShuffle.size() != 0) visualPlayShuffle();
-
-                if(!IS_WON && !END_MOVE){
-                    actors.get(movePlayer).move();
-                }
-
-                if(playShuffle.size() != 0) visualPlayShuffle();
-
-                if(!IS_WON && !END_MOVE){
-                    actors.get(defencePlayer).defence();
-                }
-                isWon();
-                if(IS_WON) break;
-            }
-            if(IS_WON) break;
-        }
-
-    }
-
-    private void visualPlayShuffle() {
-        System.out.println();
-        for(Card c : playShuffle){
-            System.out.println(c.getSuit() +  " " + c.getNumber());
-        }
-        System.out.println();
-    }
 
     public void endMethod(){
         takeOffMethod();
         for (int i = 0; i < actors.size(); i++) {
             actors.get(i).newCardTake();
         }
-        END_MOVE = true;
+
+        playShuffle.clear();
+
         movePlayer++;
+        if(movePlayer == actors.size()) movePlayer = 0;
+
         defencePlayer++;
-        countMove++;
+        if(defencePlayer == actors.size()) defencePlayer = 0;
+
+        if(BattleWindow.getMesCounter() == 0) BattleWindow.setMesCounter(1);
+        else BattleWindow.setMesCounter(0);
+
+        if(BattleWindow.getButCounter() == 0) BattleWindow.setButCounter(1);
+        else BattleWindow.setButCounter(0);
+
+        if(BattleWindow.getMesCounter() == 1) actors.get(movePlayer).move(null);
+    }
+
+    public void newSession(){
+        battleWindow = new BattleWindow(this, actors);
+        battleWindow.showBattle();
     }
 
     public void isWon(){
@@ -114,4 +109,35 @@ public class Game {
         }
     }
 
+    public int getMovePlayer() {
+        return movePlayer;
+    }
+
+    public ArrayList<Card> getPlayShuffle() {
+        return playShuffle;
+    }
+
+    public int getDefencePlayer() {
+        return defencePlayer;
+    }
+
+    public void setTaken(Card taken) {
+        this.taken = taken;
+    }
+
+    public boolean getAccess(){
+        return access;
+    }
+
+    public void setAccess(boolean access) {
+        this.access = access;
+    }
+
+    public ArrayList<MoveAndDefence> getActors() {
+        return actors;
+    }
+
+    public BattleWindow getBattleWindow() {
+        return battleWindow;
+    }
 }
