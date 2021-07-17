@@ -24,7 +24,7 @@ public class Game {
     private static int maxPlayShuffleSize = 12;
 
     public Game(int valueOfPlayers){
-        this.valueOfPlayers = valueOfPlayers;
+        //this.valueOfPlayers = valueOfPlayers;
         Koloda koloda = new Koloda();
         kolodaCards = koloda.getCards();
         KOZAR = kolodaCards.get(kolodaCards.size()-1).getSuit();
